@@ -1,30 +1,42 @@
-name: Auto Build on Tag
+name: Build Windows EXE
 
 on:
   push:
     tags:
-      - 'v*'  # 只响应 v 开头的标签，如 v1.0.0
+      - 'v*' # 当你推送 v1.0.0 这样的标签时自动触发
+  workflow_dispatch: # 允许手动在网页上点击按钮触发
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          python-version: '3.11'
-          
-      - name: Build EXE
+          channel: 'stable'
+          architecture: x64
+      
+      - name: Install Dependencies
         run: |
-          pip install pyinstaller
-          pip install -r requirements.txt
-          pyinstaller --onefile --windowed --name=MyApp-${GITHUB_REF#refs/tags/} main.py
+          cd ktb  # 确保这里是你的主项目目录
+          flutter pub get
+      
+      - name: Build Release
+        run: |
+          cd ktb
+          flutter build windows --release
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ktb
+          path: ktb/build/windows/runner/Release/
           
-      - name: Upload to Release
+      # 可选：自动创建 GitHub Release 并上传
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: ktb/build/windows/runner/Release/**
