@@ -1,33 +1,15 @@
-name: Build Windows
+- name: Build Release
+  run: |
+    cd simple_live_app
+    flutter build windows --release
 
-on:
-  workflow_dispatch:
+- name: Debug - Show built files
+  run: |
+    cd simple_live_app
+    dir build\windows\runner\Release\
 
-jobs:
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4   # ✅ 升级到这里
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2   # ✅ Flutter action 用 v2
-        with:
-          channel: 'stable'
-
-      - name: Install Dependencies
-        run: |
-          cd simple_live_app
-          flutter pub get
-
-      - name: Build Release
-        run: |
-          cd simple_live_app
-          flutter build windows --release
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4   # ✅ 也建议升级上传插件
-        with:
-          name: windows-build
-          path: simple_live_app/build/windows/runner/Release/
+- name: Upload Artifact
+  uses: actions/upload-artifact@v4
+  with:
+    name: windows-build
+    path: simple_live_app/build/windows/runner/Release/
