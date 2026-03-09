@@ -1,42 +1,30 @@
-name: ktb
+name: Auto Build on Tag
 
 on:
   push:
     tags:
-      - 'v*' # 当你推送 v1.0.0 这样的标签时自动触发
-  workflow_dispatch: # 允许手动在网页上点击按钮触发
+      - 'v*'  # 只响应 v 开头的标签，如 v1.0.0
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          channel: 'stable'
-          architecture: x64
-      
-      - name: Install Dependencies
-        run: |
-          cd ktb  # 确保这里是你的主项目目录
-          flutter pub get
-      
-      - name: Build Release
-        run: |
-          cd ktb
-          flutter build windows --release
-      
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ktb
-          path: ktb/build/windows/runner/Release/
+          python-version: '3.11'
           
-      # 可选：自动创建 GitHub Release 并上传
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Build EXE
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+          pyinstaller --onefile --windowed --name=MyApp-${GITHUB_REF#refs/tags/} main.py
+          
+      - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ktb/build/windows/runner/Release/**
+          files: dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
