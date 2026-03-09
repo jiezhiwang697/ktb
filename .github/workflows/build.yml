@@ -1,15 +1,1 @@
-- name: Build Release
-  run: |
-    cd simple_live_app
-    flutter build windows --release
 
-- name: Debug - Show built files
-  run: |
-    cd simple_live_app
-    dir build\windows\runner\Release\
-
-- name: Upload Artifact
-  uses: actions/upload-artifact@v4
-  with:
-    name: windows-build
-    path: simple_live_app/build/windows/runner/Release/
